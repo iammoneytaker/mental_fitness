@@ -1,6 +1,9 @@
 // lib/screens/game_selection_screen.dart
 import 'package:flutter/material.dart';
+import 'package:mental_fitness/screens/language_game_screen.dart';
 import 'package:mental_fitness/screens/memory_game_screen.dart';
+import 'package:mental_fitness/screens/memory_match_game_screen.dart';
+import 'package:mental_fitness/screens/spatial_game_screen.dart';
 
 class GameSelectionScreen extends StatelessWidget {
   const GameSelectionScreen({super.key});
@@ -18,8 +21,9 @@ class GameSelectionScreen extends StatelessWidget {
         crossAxisSpacing: 16.0,
         children: [
           _buildGameCard(context, '기억력 게임', const MemoryGameScreen()),
-          _buildGameCard(context, '공간 지각 게임', null),
-          _buildGameCard(context, '언어 능력 게임', null),
+          _buildGameCard(context, '카드 짝 맞추기', const MemoryMatchGameScreen()),
+          _buildGameCard(context, '공간 지각 게임', const SpatialGameScreen()),
+          _buildGameCard(context, '언어 능력 게임', const LanguageGameScreen()),
           _buildGameCard(context, '회전 능력 게임', null),
         ],
       ),

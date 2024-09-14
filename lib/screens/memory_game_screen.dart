@@ -20,12 +20,21 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
   int currentHighlight = 0;
   String sequenceText = '';
 
+  bool isDisposed = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       showGameExplanation();
     });
+  }
+
+  @override
+  void dispose() {
+    // Add any cleanup logic if necessary.
+    isDisposed = true;
+    super.dispose();
   }
 
   void showGameExplanation() {
@@ -54,6 +63,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
   }
 
   void startNewRound() {
+    if (isDisposed) return;
     setState(() {
       sequence.add(Random().nextInt(4) + 1);
       isShowingSequence = true;
@@ -67,7 +77,9 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
   void showSequence() async {
     await Future.delayed(const Duration(seconds: 1));
     for (int i = 0; i < sequence.length; i++) {
+      if (isDisposed) return;
       int color = sequence[i];
+      if (!mounted) return;
       setState(() {
         currentHighlight = color;
         sequenceText = '${i + 1}번째';
@@ -78,7 +90,9 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
         sequenceText = '';
       });
       await Future.delayed(const Duration(milliseconds: 300));
+      if (isDisposed) return;
     }
+    if (!mounted) return;
     setState(() {
       isShowingSequence = false;
       isUserTurn = true;
@@ -87,7 +101,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
   }
 
   void checkUserInput(int tappedColor) {
-    if (!isUserTurn) return;
+    if (!isUserTurn || isDisposed) return;
 
     setState(() {
       currentHighlight = tappedColor;
@@ -101,6 +115,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
     }
 
     Future.delayed(const Duration(milliseconds: 200), () {
+      if (isDisposed) return;
       setState(() {
         currentHighlight = 0;
       });
@@ -113,6 +128,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
         sequenceText = '정답입니다!';
       });
       Future.delayed(const Duration(milliseconds: 1000), () {
+        if (isDisposed) return;
         startNewRound();
       });
     } else {
@@ -123,6 +139,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
   }
 
   void gameOver() {
+    if (isDisposed) return;
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -134,8 +151,9 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
               child: const Text('다시 시작'),
               onPressed: () {
                 Navigator.of(context).pop();
+                if (isDisposed) return;
                 setState(() {
-                  level = 1;
+                  level = 1; // 이 부분을 수정하여 레벨을 초기화하지 않도록 합니다.
                   score = 0;
                   sequence.clear();
                   userSequence.clear();
@@ -176,10 +194,10 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
               mainAxisSpacing: 16.0,
               crossAxisSpacing: 16.0,
               children: [
-                _buildColorButton(Colors.red, 1),
-                _buildColorButton(Colors.green, 2),
-                _buildColorButton(Colors.blue, 3),
-                _buildColorButton(Colors.yellow, 4),
+                buildColorButton(Colors.red, 1),
+                buildColorButton(Colors.green, 2),
+                buildColorButton(Colors.blue, 3),
+                buildColorButton(Colors.yellow, 4),
               ],
             ),
           ),
@@ -196,7 +214,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
     );
   }
 
-  Widget _buildColorButton(Color color, int colorIndex) {
+  Widget buildColorButton(Color color, int colorIndex) {
     return GestureDetector(
       onTap: () => checkUserInput(colorIndex),
       child: AnimatedContainer(

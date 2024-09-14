@@ -8,6 +8,8 @@ import 'package:mental_fitness/providers/game_system_provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // 광고 구현하기 ( 힌트? 목숨? )
+
   runApp(
     MultiProvider(
       providers: [
