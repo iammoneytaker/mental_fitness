@@ -1,3 +1,4 @@
+// lib/screens/game_selection_screen.dart
 import 'package:flutter/material.dart';
 import 'package:mental_fitness/screens/memory_game_screen.dart';
 
@@ -8,16 +9,18 @@ class GameSelectionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Select a Game'),
+        title: const Text('게임 선택'),
       ),
       body: GridView.count(
         crossAxisCount: 2,
         padding: const EdgeInsets.all(16.0),
+        mainAxisSpacing: 16.0,
+        crossAxisSpacing: 16.0,
         children: [
-          _buildGameCard(context, 'Memory Game', MemoryGameScreen()),
-          _buildGameCard(context, 'Spatial Game', null),
-          _buildGameCard(context, 'Language Game', null),
-          _buildGameCard(context, 'Rotation Game', null),
+          _buildGameCard(context, '기억력 게임', const MemoryGameScreen()),
+          _buildGameCard(context, '공간 지각 게임', null),
+          _buildGameCard(context, '언어 능력 게임', null),
+          _buildGameCard(context, '회전 능력 게임', null),
         ],
       ),
     );
@@ -25,6 +28,8 @@ class GameSelectionScreen extends StatelessWidget {
 
   Widget _buildGameCard(BuildContext context, String title, Widget? screen) {
     return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: screen != null
             ? () {
@@ -37,7 +42,8 @@ class GameSelectionScreen extends StatelessWidget {
         child: Center(
           child: Text(
             title,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: Theme.of(context).textTheme.displayMedium,
+            textAlign: TextAlign.center,
           ),
         ),
       ),
