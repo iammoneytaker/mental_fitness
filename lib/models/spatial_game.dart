@@ -1,22 +1,23 @@
-import 'package:mental_fitness/models/game.dart';
 import 'dart:math';
 
-class SpatialGame extends Game {
+class SpatialGame {
   late List<List<bool>> baseShape;
   late List<List<List<bool>>> options;
   late int correctAnswer;
 
-  @override
+  int score = 0;
+  int level = 1;
+  bool isCompleted = false;
+
   void startGame() {
-    setScore(0);
-    setLevel(1);
-    setIsCompleted(false);
+    score = 0;
+    level = 1;
+    isCompleted = false;
     generateNewPuzzle();
   }
 
-  @override
   void endGame() {
-    completeGame();
+    isCompleted = true;
   }
 
   void generateNewPuzzle() {
@@ -26,7 +27,6 @@ class SpatialGame extends Game {
     correctAnswer = Random().nextInt(4);
     options[correctAnswer] =
         List.from(baseShape.map((row) => List<bool>.from(row)));
-    notifyListeners();
   }
 
   List<List<bool>> generateRandomShape(int size) {
@@ -84,8 +84,8 @@ class SpatialGame extends Game {
 
   bool checkAnswer(int selectedIndex) {
     if (selectedIndex == correctAnswer) {
-      incrementScore(10);
-      nextLevel();
+      score += 10;
+      level++;
       generateNewPuzzle();
       return true;
     }

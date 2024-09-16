@@ -1,7 +1,5 @@
 import 'dart:async';
 import 'dart:math';
-import 'package:flutter/foundation.dart';
-import 'package:mental_fitness/models/game.dart';
 
 class Card {
   final String content;
@@ -11,16 +9,16 @@ class Card {
   Card(this.content, {this.isFlipped = false, this.isMatched = false});
 }
 
-//TODO:  게임하다가 뒤로가기 했을때 에러 처리 해야함 FlutterError (A MemoryMatchGame was used after being disposed.
-// Once you have called dispose() on a MemoryMatchGame, it can no longer be used.)
-
-class MemoryMatchGame extends Game {
+class MemoryMatchGame {
   List<Card> cards = [];
   Card? firstSelectedCard;
   Card? secondSelectedCard;
   late Timer timer;
   int remainingTime = 60;
   bool isGameOver = false;
+  int score = 0;
+  int level = 1;
+  bool isCompleted = false;
 
   static const List<String> cardContents = [
     'A',
@@ -65,11 +63,10 @@ class MemoryMatchGame extends Game {
     startGame();
   }
 
-  @override
   void startGame() {
-    setScore(0);
-    setLevel(1);
-    setIsCompleted(false);
+    score = 0;
+    level = 1;
+    isCompleted = false;
     isGameOver = false;
     remainingTime = 60;
     initializeCards();
@@ -78,21 +75,19 @@ class MemoryMatchGame extends Game {
 
   void initializeCards() {
     cards = [];
-    int numPairs = min(2 + level, 18);
+    int numPairs = min(2 + level, 12);
     List<String> selectedContents = cardContents.sublist(0, numPairs);
     List<String> allContents = [...selectedContents, ...selectedContents];
     allContents.shuffle(Random());
     for (var content in allContents) {
       cards.add(Card(content));
     }
-    notifyListeners();
   }
 
   void startTimer() {
     timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (remainingTime > 0) {
         remainingTime--;
-        notifyListeners();
       } else {
         endGame();
       }
@@ -112,45 +107,34 @@ class MemoryMatchGame extends Game {
       if (firstSelectedCard!.content == secondSelectedCard!.content) {
         firstSelectedCard!.isMatched = true;
         secondSelectedCard!.isMatched = true;
-        incrementScore(10);
+        score += 10;
         firstSelectedCard = null;
         secondSelectedCard = null;
 
         if (cards.every((card) => card.isMatched)) {
+          endGame();
           if (level < 9) {
-            nextLevel();
+            level++;
             initializeCards();
             remainingTime = 60;
-            notifyListeners();
           } else {
-            endGame();
-            setIsCompleted(true);
-            notifyListeners();
+            isCompleted = true;
           }
         }
       } else {
-        decrementScore(1);
+        score = max(0, score - 1);
         Future.delayed(const Duration(milliseconds: 500), () {
           firstSelectedCard?.isFlipped = false;
           secondSelectedCard?.isFlipped = false;
           firstSelectedCard = null;
           secondSelectedCard = null;
-          notifyListeners();
         });
       }
     }
-
-    notifyListeners();
   }
 
-  void decrementScore(int amount) {
-    setScore(max(0, score - amount));
-  }
-
-  @override
   void endGame() {
     isGameOver = true;
     timer.cancel();
-    completeGame();
   }
 }

@@ -1,26 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:mental_fitness/models/spatial_game.dart';
 
-class SpatialGameScreen extends StatelessWidget {
+class SpatialGameScreen extends StatefulWidget {
   const SpatialGameScreen({super.key});
-
   @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => SpatialGame()..startGame(),
-      child: const _SpatialGameView(),
-    );
-  }
+  _SpatialGameScreenState createState() => _SpatialGameScreenState();
 }
 
-class _SpatialGameView extends StatelessWidget {
-  const _SpatialGameView();
+class _SpatialGameScreenState extends State<SpatialGameScreen> {
+  late SpatialGame game;
+  @override
+  void initState() {
+    super.initState();
+    game = SpatialGame();
+    game.startGame();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final game = Provider.of<SpatialGame>(context);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('공간 지각 게임'),
@@ -64,7 +61,7 @@ class _SpatialGameView extends StatelessWidget {
                 childAspectRatio: 1,
                 children: List.generate(4, (index) {
                   return GestureDetector(
-                    onTap: () => _checkAnswer(context, game, index),
+                    onTap: () => _checkAnswer(index),
                     child: _buildShapeGrid(game.options[index]),
                   );
                 }),
@@ -109,45 +106,47 @@ class _SpatialGameView extends StatelessWidget {
     );
   }
 
-  void _checkAnswer(BuildContext context, SpatialGame game, int selectedIndex) {
-    if (game.checkAnswer(selectedIndex)) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('정답입니다!'),
-            content: const Text('다음 레벨로 넘어갑니다.'),
-            actions: <Widget>[
-              TextButton(
-                child: const Text('계속하기'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
-    } else {
-      showDialog(
-        context: context,
-        barrierDismissible: false, // 사용자가 다이얼로그 바깥을 터치해도 닫히지 않도록 설정
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('틀렸습니다'),
-            content: const Text('게임을 다시 시작합니다.'),
-            actions: <Widget>[
-              TextButton(
-                child: const Text('다시 시작'),
-                onPressed: () {
-                  game.startGame(); // 게임을 처음부터 다시 시작
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
-    }
+  void _checkAnswer(int selectedIndex) {
+    setState(() {
+      if (game.checkAnswer(selectedIndex)) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('정답입니다!'),
+              content: const Text('다음 레벨로 넘어갑니다.'),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('계속하기'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('틀렸습니다'),
+              content: const Text('게임을 다시 시작합니다.'),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('다시 시작'),
+                  onPressed: () {
+                    game.startGame();
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+    });
   }
 }

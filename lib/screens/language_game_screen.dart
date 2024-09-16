@@ -1,26 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:mental_fitness/models/language_game.dart';
 
-class LanguageGameScreen extends StatelessWidget {
+class LanguageGameScreen extends StatefulWidget {
   const LanguageGameScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => LanguageGame()..startGame(),
-      child: const _LanguageGameView(),
-    );
-  }
+  _LanguageGameScreenState createState() => _LanguageGameScreenState();
 }
 
-class _LanguageGameView extends StatelessWidget {
-  const _LanguageGameView();
+class _LanguageGameScreenState extends State<LanguageGameScreen> {
+  late LanguageGame game;
+
+  @override
+  void initState() {
+    super.initState();
+    game = LanguageGame();
+    game.startGame();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final game = Provider.of<LanguageGame>(context);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('언어 능력 게임'),
@@ -56,7 +55,7 @@ class _LanguageGameView extends StatelessWidget {
                   runSpacing: 8,
                   children: List.generate(
                     game.shuffledPieces.length,
-                    (index) => _buildAnswerTile(context, game, index),
+                    (index) => _buildAnswerTile(context, index),
                   ),
                 ),
               ),
@@ -67,13 +66,13 @@ class _LanguageGameView extends StatelessWidget {
                 spacing: 8,
                 runSpacing: 8,
                 children: game.shuffledPieces
-                    .map((piece) => _buildPieceTile(context, game, piece))
+                    .map((piece) => _buildPieceTile(context, piece))
                     .toList(),
               ),
             ),
             ElevatedButton(
               child: const Text('확인', style: TextStyle(fontSize: 24)),
-              onPressed: () => _checkAnswer(context, game),
+              onPressed: () => _checkAnswer(context),
             ),
             const SizedBox(height: 20),
           ],
@@ -82,12 +81,14 @@ class _LanguageGameView extends StatelessWidget {
     );
   }
 
-  Widget _buildAnswerTile(BuildContext context, LanguageGame game, int index) {
+  Widget _buildAnswerTile(BuildContext context, int index) {
     return GestureDetector(
       onTap: () {
-        if (game.userAnswer[index].isNotEmpty) {
-          game.removeLetterFromAnswer(index);
-        }
+        setState(() {
+          if (game.userAnswer[index].isNotEmpty) {
+            game.removeLetterFromAnswer(index);
+          }
+        });
       },
       child: Container(
         width: game.level <= 6 ? 60 : 120,
@@ -105,14 +106,15 @@ class _LanguageGameView extends StatelessWidget {
     );
   }
 
-  Widget _buildPieceTile(
-      BuildContext context, LanguageGame game, String piece) {
+  Widget _buildPieceTile(BuildContext context, String piece) {
     return GestureDetector(
       onTap: () {
-        int emptyIndex = game.userAnswer.indexOf('');
-        if (emptyIndex != -1) {
-          game.updateUserAnswer(emptyIndex, piece);
-        }
+        setState(() {
+          int emptyIndex = game.userAnswer.indexOf('');
+          if (emptyIndex != -1) {
+            game.updateUserAnswer(emptyIndex, piece);
+          }
+        });
       },
       child: Container(
         width: game.level <= 6 ? 60 : 120,
@@ -130,45 +132,47 @@ class _LanguageGameView extends StatelessWidget {
     );
   }
 
-  void _checkAnswer(BuildContext context, LanguageGame game) {
-    if (game.checkAnswer()) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('정답입니다!'),
-            content: const Text('다음 단어로 넘어갑니다.'),
-            actions: <Widget>[
-              TextButton(
-                child: const Text('계속하기'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
-    } else {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('틀렸습니다'),
-            content: Text('정답은 "${game.currentPuzzle}"입니다. 게임을 다시 시작합니다.'),
-            actions: <Widget>[
-              TextButton(
-                child: const Text('다시 시작'),
-                onPressed: () {
-                  game.startGame();
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
-    }
+  void _checkAnswer(BuildContext context) {
+    setState(() {
+      if (game.checkAnswer()) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('정답입니다!'),
+              content: const Text('다음 단어로 넘어갑니다.'),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('계속하기'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('틀렸습니다'),
+              content: Text('정답은 "${game.currentPuzzle}"입니다. 게임을 다시 시작합니다.'),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('다시 시작'),
+                  onPressed: () {
+                    game.startGame();
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+    });
   }
 }

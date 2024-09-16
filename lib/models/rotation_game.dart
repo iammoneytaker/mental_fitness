@@ -1,13 +1,15 @@
-import 'package:mental_fitness/models/game.dart';
+import 'dart:math';
 
-class RotationGame extends Game {
-  @override
+class RotationGame {
+  int score = 0;
+  int level = 1;
+  bool isCompleted = false;
+
   void startGame() {
-    // TODO: Implement language game start logic
+    // TODO: Implement rotation game start logic
   }
 
-  @override
   void endGame() {
-    completeGame();
+    isCompleted = true;
   }
 }

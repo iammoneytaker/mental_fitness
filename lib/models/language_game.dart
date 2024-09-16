@@ -1,7 +1,6 @@
-import 'package:mental_fitness/models/game.dart';
 import 'dart:math';
 
-class LanguageGame extends Game {
+class LanguageGame {
   late String currentPuzzle;
   late List<String> shuffledPieces;
   late List<String> userAnswer;
@@ -63,17 +62,20 @@ class LanguageGame extends Game {
     '모두가 평화롭게 지냈으면 좋겠어요',
     // 더 많은 쉬운 문장 추가
   ];
-  @override
+
+  int score = 0;
+  int level = 1;
+  bool isCompleted = false;
+
   void startGame() {
-    setScore(0);
-    setLevel(1);
-    setIsCompleted(false);
+    score = 0;
+    level = 1;
+    isCompleted = false;
     generateNewPuzzle();
   }
 
-  @override
   void endGame() {
-    completeGame();
+    isCompleted = true;
   }
 
   void generateNewPuzzle() {
@@ -101,14 +103,13 @@ class LanguageGame extends Game {
       shuffledPieces = currentPuzzle.split(' ')..shuffle();
     }
     userAnswer = List.filled(shuffledPieces.length, '');
-    notifyListeners();
   }
 
   bool checkAnswer() {
     String userAnswerString = userAnswer.join(level <= 6 ? '' : ' ').trim();
     if (userAnswerString == currentPuzzle) {
-      incrementScore(10);
-      nextLevel();
+      score += 10;
+      level++;
       generateNewPuzzle();
       return true;
     }
@@ -117,11 +118,9 @@ class LanguageGame extends Game {
 
   void updateUserAnswer(int index, String piece) {
     userAnswer[index] = piece;
-    notifyListeners();
   }
 
   void removeLetterFromAnswer(int index) {
     userAnswer[index] = '';
-    notifyListeners();
   }
 }

@@ -1,29 +1,29 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:mental_fitness/models/memory_match_game.dart';
 
-class MemoryMatchGameScreen extends StatelessWidget {
+class MemoryMatchGameScreen extends StatefulWidget {
   const MemoryMatchGameScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => MemoryMatchGame(),
-      child: const _MemoryMatchGameView(),
-    );
-  }
+  _MemoryMatchGameScreenState createState() => _MemoryMatchGameScreenState();
 }
 
-class _MemoryMatchGameView extends StatelessWidget {
-  const _MemoryMatchGameView();
+class _MemoryMatchGameScreenState extends State<MemoryMatchGameScreen> {
+  late MemoryMatchGame game;
+
+  @override
+  void initState() {
+    super.initState();
+    game = MemoryMatchGame();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final game = Provider.of<MemoryMatchGame>(context);
-
     if (game.isCompleted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _showCompletionDialog(context, game);
+        _showCompletionDialog(context);
       });
     }
 
@@ -50,21 +50,25 @@ class _MemoryMatchGameView extends StatelessWidget {
               child: GridView.builder(
                 padding: const EdgeInsets.all(8.0),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                  childAspectRatio: 1,
+                  crossAxisCount: 4, // 여기서 카드의 개수를 결정합니다.
+                  childAspectRatio: 1, // 1:1 비율로 카드가 표시되도록 설정
                   crossAxisSpacing: 8,
                   mainAxisSpacing: 8,
                 ),
                 itemCount: game.cards.length,
                 itemBuilder: (context, index) {
-                  return _buildCard(context, game, index);
+                  return _buildCard(context, index);
                 },
               ),
             ),
             if (game.isGameOver)
               ElevatedButton(
                 child: const Text('다시 시작'),
-                onPressed: () => game.startGame(),
+                onPressed: () {
+                  setState(() {
+                    game.startGame();
+                  });
+                },
               ),
           ],
         ),
@@ -72,9 +76,13 @@ class _MemoryMatchGameView extends StatelessWidget {
     );
   }
 
-  Widget _buildCard(BuildContext context, MemoryMatchGame game, int index) {
+  Widget _buildCard(BuildContext context, int index) {
     return GestureDetector(
-      onTap: () => game.selectCard(index),
+      onTap: () {
+        setState(() {
+          game.selectCard(index);
+        });
+      },
       child: Container(
         decoration: BoxDecoration(
           color: game.cards[index].isFlipped || game.cards[index].isMatched
@@ -98,7 +106,7 @@ class _MemoryMatchGameView extends StatelessWidget {
     );
   }
 
-  void _showCompletionDialog(BuildContext context, MemoryMatchGame game) {
+  void _showCompletionDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -109,7 +117,9 @@ class _MemoryMatchGameView extends StatelessWidget {
             TextButton(
               child: const Text('처음부터 다시 시작'),
               onPressed: () {
-                game.startGame();
+                setState(() {
+                  game.startGame();
+                });
                 Navigator.of(context).pop();
               },
             ),

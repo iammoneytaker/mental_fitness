@@ -1,15 +1,19 @@
-import 'package:mental_fitness/models/game.dart';
-import 'package:flutter/foundation.dart';
+// memory_game.dart
 
-class MemoryGame extends Game {
+import 'dart:math';
+
+class MemoryGame {
   final List<String> _sequence = [];
   final List<String> _userSequence = [];
 
   List<String> get sequence => _sequence;
 
+  int score = 0;
+  int level = 1;
+  bool isCompleted = false;
+
   void addToSequence(String item) {
     _sequence.add(item);
-    notifyListeners();
   }
 
   void addToUserSequence(String item) {
@@ -17,13 +21,12 @@ class MemoryGame extends Game {
     if (_userSequence.length == _sequence.length) {
       checkSequence();
     }
-    notifyListeners();
   }
 
   void checkSequence() {
-    if (listEquals(_sequence, _userSequence)) {
-      incrementScore(10);
-      nextLevel();
+    if (_sequence == _userSequence) {
+      score += 10;
+      level++;
       _userSequence.clear();
       addToSequence(generateRandomItem());
     } else {
@@ -36,18 +39,16 @@ class MemoryGame extends Game {
     return 'Item';
   }
 
-  @override
   void startGame() {
     _sequence.clear();
     _userSequence.clear();
-    setScore(0);
-    setLevel(1);
-    setIsCompleted(false);
+    score = 0;
+    level = 1;
+    isCompleted = false;
     addToSequence(generateRandomItem());
   }
 
-  @override
   void endGame() {
-    completeGame();
+    isCompleted = true;
   }
 }
