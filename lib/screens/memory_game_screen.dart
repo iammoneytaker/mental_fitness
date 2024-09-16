@@ -3,6 +3,9 @@ import 'package:flutter/services.dart';
 import 'dart:async';
 import 'dart:math';
 
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:mental_fitness/ad_helper.dart';
+
 class MemoryGameScreen extends StatefulWidget {
   const MemoryGameScreen({super.key});
 
@@ -20,20 +23,42 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
   int currentHighlight = 0;
   String sequenceText = '';
 
-  bool isDisposed = false;
+  late BannerAd _bannerAd;
+
+  bool _isAdLoaded = false;
 
   @override
   void initState() {
     super.initState();
+    _initBannerAd();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       showGameExplanation();
     });
   }
 
+  void _initBannerAd() {
+    _bannerAd = BannerAd(
+      adUnitId: AdHelper.bannerAdUnitId,
+      size: AdSize.banner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          setState(() {
+            _isAdLoaded = true;
+          });
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+        },
+      ),
+    );
+    _bannerAd.load();
+  }
+
   @override
   void dispose() {
+    _bannerAd.dispose();
     // Add any cleanup logic if necessary.
-    isDisposed = true;
     super.dispose();
   }
 
@@ -63,7 +88,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
   }
 
   void startNewRound() {
-    if (isDisposed) return;
+    if (!mounted) return;
     setState(() {
       sequence.add(Random().nextInt(4) + 1);
       isShowingSequence = true;
@@ -77,20 +102,19 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
   void showSequence() async {
     await Future.delayed(const Duration(seconds: 1));
     for (int i = 0; i < sequence.length; i++) {
-      if (isDisposed) return;
-      int color = sequence[i];
       if (!mounted) return;
+      int color = sequence[i];
       setState(() {
         currentHighlight = color;
         sequenceText = '${i + 1}번째';
       });
       await Future.delayed(const Duration(milliseconds: 800));
+      if (!mounted) return;
       setState(() {
         currentHighlight = 0;
         sequenceText = '';
       });
       await Future.delayed(const Duration(milliseconds: 300));
-      if (isDisposed) return;
     }
     if (!mounted) return;
     setState(() {
@@ -101,7 +125,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
   }
 
   void checkUserInput(int tappedColor) {
-    if (!isUserTurn || isDisposed) return;
+    if (!isUserTurn || !mounted) return;
 
     setState(() {
       currentHighlight = tappedColor;
@@ -115,7 +139,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
     }
 
     Future.delayed(const Duration(milliseconds: 200), () {
-      if (isDisposed) return;
+      if (!mounted) return;
       setState(() {
         currentHighlight = 0;
       });
@@ -128,7 +152,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
         sequenceText = '정답입니다!';
       });
       Future.delayed(const Duration(milliseconds: 1000), () {
-        if (isDisposed) return;
+        if (!mounted) return;
         startNewRound();
       });
     } else {
@@ -139,7 +163,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
   }
 
   void gameOver() {
-    if (isDisposed) return;
+    if (!mounted) return;
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -151,7 +175,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
               child: const Text('다시 시작'),
               onPressed: () {
                 Navigator.of(context).pop();
-                if (isDisposed) return;
+                if (!mounted) return;
                 setState(() {
                   level = 1; // 이 부분을 수정하여 레벨을 초기화하지 않도록 합니다.
                   score = 0;
@@ -175,6 +199,12 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
       ),
       body: Column(
         children: [
+          if (_isAdLoaded)
+            SizedBox(
+              height: _bannerAd.size.height.toDouble(),
+              width: _bannerAd.size.width.toDouble(),
+              child: AdWidget(ad: _bannerAd),
+            ),
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(

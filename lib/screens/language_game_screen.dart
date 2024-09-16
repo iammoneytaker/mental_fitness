@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:mental_fitness/ad_helper.dart';
 import 'package:mental_fitness/models/language_game.dart';
 
 class LanguageGameScreen extends StatefulWidget {
@@ -9,13 +11,42 @@ class LanguageGameScreen extends StatefulWidget {
 }
 
 class _LanguageGameScreenState extends State<LanguageGameScreen> {
+  late BannerAd _bannerAd;
+
+  bool _isAdLoaded = false;
   late LanguageGame game;
 
   @override
   void initState() {
     super.initState();
+    _initBannerAd();
     game = LanguageGame();
     game.startGame();
+  }
+
+  void _initBannerAd() {
+    _bannerAd = BannerAd(
+      adUnitId: AdHelper.bannerAdUnitId,
+      size: AdSize.banner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          setState(() {
+            _isAdLoaded = true;
+          });
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+        },
+      ),
+    );
+    _bannerAd.load();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd.dispose();
+    super.dispose();
   }
 
   @override
@@ -27,6 +58,12 @@ class _LanguageGameScreenState extends State<LanguageGameScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            if (_isAdLoaded)
+              SizedBox(
+                height: _bannerAd.size.height.toDouble(),
+                width: _bannerAd.size.width.toDouble(),
+                child: AdWidget(ad: _bannerAd),
+              ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Row(

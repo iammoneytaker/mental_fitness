@@ -1,6 +1,8 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:mental_fitness/ad_helper.dart';
 import 'package:mental_fitness/models/memory_match_game.dart';
 
 class MemoryMatchGameScreen extends StatefulWidget {
@@ -11,12 +13,41 @@ class MemoryMatchGameScreen extends StatefulWidget {
 }
 
 class _MemoryMatchGameScreenState extends State<MemoryMatchGameScreen> {
+  late BannerAd _bannerAd;
+
+  bool _isAdLoaded = false;
   late MemoryMatchGame game;
 
   @override
   void initState() {
     super.initState();
     game = MemoryMatchGame();
+    _initBannerAd();
+  }
+
+  void _initBannerAd() {
+    _bannerAd = BannerAd(
+      adUnitId: AdHelper.bannerAdUnitId,
+      size: AdSize.banner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          setState(() {
+            _isAdLoaded = true;
+          });
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+        },
+      ),
+    );
+    _bannerAd.load();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd.dispose();
+    super.dispose();
   }
 
   @override
@@ -34,6 +65,12 @@ class _MemoryMatchGameScreenState extends State<MemoryMatchGameScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            if (_isAdLoaded)
+              SizedBox(
+                height: _bannerAd.size.height.toDouble(),
+                width: _bannerAd.size.width.toDouble(),
+                child: AdWidget(ad: _bannerAd),
+              ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Row(
